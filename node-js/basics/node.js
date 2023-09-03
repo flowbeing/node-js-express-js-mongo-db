@@ -33,13 +33,29 @@
 
 // console.log('Post Read File');
 
-
+const fs = require('fs');
 const http = require('http');
+const url = require('url');
+
 
 var server = http.createServer(
     (request, response) => {
         console.log(request);
-        response.end('this is a response')
+        
+        var path = request.url;
+        console.log(`path ${path}`);
+
+        if (path != "/"){
+            response.writeHead(
+                400,
+                {
+                    "Content-type": "text/html",
+                    "my-own-header": "hello-world"
+                }
+            );
+
+            response.end("<p>This is a paragraph</p>");
+        }
     }
 );
 

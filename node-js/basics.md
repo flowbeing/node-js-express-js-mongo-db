@@ -3,3 +3,5 @@ Topics covered
 - File System -> reading and writing to files
 - Synchronous & Asynchronous Code
 - Creating and Interacting with Web Servers
+- Routing HTTP requests 
+- Creating An API
