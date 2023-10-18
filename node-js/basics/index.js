@@ -37,36 +37,13 @@ const fs = require('fs');
 const http = require('http');
 const url = require('url');
 
+const replacePlaceholders = require('./replace-placeholders/replace-placeholders');
+
 // products data
 var data = fs.readFileSync(`${__dirname}/dev-data/data.json`, "utf-8");
 var overviewPageHTMLString = fs.readFileSync(`${__dirname}/templates/overview.html`, "utf-8");
 var productPageHTMLString = fs.readFileSync(`${__dirname}/templates/product.html`, "utf-8");
 var overviewPagesCardsHTMLString = fs.readFileSync(`${__dirname}/templates/template-card.html`, "utf-8");
-
-// a method that replaces placeholders in template-card's html code- overviewPagesCardsHTMLString
-// 'cardHtmlString' represents the card element for each product
-// 'replacement' represents the data that will be inserted into each product's card element
-function replaceCardPlaceholders(cardHtmlString, replacement){
-
-    let productCardHtmlString = cardHtmlString.replace(/{%IMAGE%}/g, replacement.image);
-    productCardHtmlString = productCardHtmlString.replace(/{%PRODUCTNAME%}/g, replacement.productName);
-    productCardHtmlString = productCardHtmlString.replace(/{%QUANTITY%}/g, replacement.quantity);
-    productCardHtmlString = productCardHtmlString.replace(/{%PRICE%}/g, replacement.price);
-    productCardHtmlString = productCardHtmlString.replace(/{%ID%}/g, replacement.id);
-    
-    if (replacement.organic == false){
-        productCardHtmlString = productCardHtmlString.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
-    }
-
-    console.log(`replacedCardHtmlCardHolder`);
-    console.log(`${productCardHtmlString}`);
-        
-
-
-    return productCardHtmlString;
-}
-
-
 
 var server = http.createServer(
     (request, response) => {
@@ -89,7 +66,7 @@ var server = http.createServer(
 
                 // INCOMPLETE HERE - PRODUCTS CARDS PLACEHODERS HAVE NOT BEEN REPLACED
                 // replacing products cards html codes' placeholders with real data
-                productCardHtmlString = replaceCardPlaceholders(overviewPagesCardsHTMLString, productData);
+                productCardHtmlString = replacePlaceholders(overviewPagesCardsHTMLString, productData);
                 
                 return productCardHtmlString;
             });
