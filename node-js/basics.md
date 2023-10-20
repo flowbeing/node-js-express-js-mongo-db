@@ -1,7 +1,8 @@
-Topics covered
+- Topics covered
 - Node Package Manager & REPL
 - File System -> reading and writing to files
+- Working with & Replacing Placeholder in HTML files
 - Synchronous & Asynchronous Code
 - Creating and Interacting with Web Servers
-- Routing HTTP requests 
+- Routing HTTP requests (includes working with url.parse module)
 - Creating An API

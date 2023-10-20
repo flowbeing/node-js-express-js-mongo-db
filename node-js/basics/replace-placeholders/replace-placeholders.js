@@ -10,13 +10,16 @@ module.exports = (cardHtmlString, replacement) => {
     productCardHtmlString = productCardHtmlString.replace(/{%QUANTITY%}/g, replacement.quantity);
     productCardHtmlString = productCardHtmlString.replace(/{%PRICE%}/g, replacement.price);
     productCardHtmlString = productCardHtmlString.replace(/{%ID%}/g, replacement.id);
-    
+    productCardHtmlString = productCardHtmlString.replace(/{%FROM%}/g, replacement.from);
+    productCardHtmlString = productCardHtmlString.replace(/{%PRODUCTSNUTRIENTS%}/g, replacement.nutrients);
+    productCardHtmlString = productCardHtmlString.replace(/{%PRODUCTDESCRIPTION%}/g, replacement.description);
+
     if (replacement.organic == false){
         productCardHtmlString = productCardHtmlString.replace(/{%NOT_ORGANIC%}/g, 'not-organic');
     }
 
-    console.log(`replacedCardHtmlCardHolder`);
-    console.log(`${productCardHtmlString}`);
+    // console.log(`replacedCardHtmlCardHolder`);
+    // console.log(`${productCardHtmlString}`);
         
 
 
