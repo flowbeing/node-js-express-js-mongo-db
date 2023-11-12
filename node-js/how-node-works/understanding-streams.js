@@ -1,6 +1,12 @@
 const fs = require("fs");
 const http = require("http");
 
+// continuation of understanding require -> variables, function or class that are within exports or
+// module.exports in relevant module's wrapper arguments will be accessible depending on whether
+// module.exports has been used for exporting or not.
+const subtract = require("./understanding-require");
+console.log(`someVariables: ${subtract.add}`);
+
 let server = http.createServer();
 
 server.on("request", (req, res) => {
