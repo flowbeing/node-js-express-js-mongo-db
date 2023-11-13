@@ -1,5 +1,8 @@
 const EventEmitter = require("events");
 const http = require("http");
+const fs = require('fs');
+fs.ReadStream()
+
 let server = http.createServer();
 
 class Sales extends EventEmitter {
