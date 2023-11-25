@@ -1,16 +1,16 @@
 {
-  "name": "understanding-asynchronous",
+  "name": "working-with-express",
   "version": "1.0.0",
   "description": "",
   "main": "index.js",
   "scripts": {
-    "start": "nodemon creating-promises-manually",
+    "start": "nodemon node app.js",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "author": "",
   "license": "ISC",
   "dependencies": {
-    "superagent": "^8.1.2"
+    "express": "^4.18.2"
   },
   "devDependencies": {
     "nodemon": "^3.0.1"
