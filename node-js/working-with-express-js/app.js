@@ -15,6 +15,11 @@ let app = express();
 // A MIDDLEWARE IS BASICALLY A FUNCTION THAT CAN MODIFY AN INCOMING REQUEST DATA. ITS CALLED A MIDDLEWARE BECAUSE IT STANDS BETWEEN AND REQUEST AND A RESPONSE.
 app.use(express.json()); // express.json returns a middleware
 
+app.use((request, response, next) => {
+  console.log("This is a middleware");
+  next();
+});
+
 // reading json file & converting json string to an object (a map)
 let tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, "utf-8")
@@ -224,3 +229,5 @@ app
 app.listen(portNum, () => {
   console.log(`listening on port: ${portNum}`);
 });
+
+express.text;
