@@ -1,3 +1,10 @@
+// TO DO
+// 1. Separate routes & routers
+// 2. Separate request handler functions & middleware functions
+// 3. Separate Server functions
+
+// console.log(Object.keys(arguments));
+
 // NATOURS API WITH EXPRESS.JS
 // MAJOR CHALLENGES FACED:
 // a. reconciling tour data id with tour data index to
@@ -6,30 +13,40 @@
 //    iii. delete tour data at the right index and with the right id
 const express = require("express");
 const fs = require("fs");
+const morgan = require("morgan"); // http request logger for nodejs
 const portNum = 3000;
 
 // creates an express application
 let app = express();
 
+// MIDDLEWARES
 // asks (express) app to make use of a middleware
 // A MIDDLEWARE IS BASICALLY A FUNCTION THAT CAN MODIFY AN INCOMING REQUEST DATA. ITS CALLED A MIDDLEWARE BECAUSE IT STANDS BETWEEN AND REQUEST AND A RESPONSE.
-app.use(express.json()); // express.json returns a middleware
+app.use(express.json()); // express.json returns a middleware that parses the request data (json) to a javascript object and makes it accessible via "request.body"
+app.use(morgan("combined")); // logs http requests to the console
 
 app.use((request, response, next) => {
   console.log("This is a middleware");
+  request.requestTime = new Date().toISOString();
+  // console.log(next);
+  // console.log(Object.keys(response));
   next();
 });
 
+// TOURS & USERS DATA
 // reading json file & converting json string to an object (a map)
 let tours = JSON.parse(
   fs.readFileSync(`${__dirname}/dev-data/data/tours-simple.json`, "utf-8")
+);
+let users = JSON.parse(
+  fs.readFileSync(`${__dirname}/dev-data/data/users.json`, "utf-8")
 );
 
 // console.log(typeof(tours));
 // console.log(typeof ("a" + 1));
 // console.log("a" * 1);
 
-// CRUD FUNCTIONS
+// HANDLER FUNCTIONS - TOURS
 const homepage = (request, response) => {
   // a simplified send operation that would have required:
   // 1. obtaining and specifying the request path "/" manually with request.url and a conditional if statement (if (request.url == "/"){...}) in NodeJS
@@ -45,6 +62,7 @@ const getAllTours = (request, response) => {
   if (toursLength > 0) {
     response.status(200).json({
       status: "success",
+      requestTime: String(request.requestTime),
       result: tours.length, // result specifies the result's length
       data: {
         tours, // similar to stating "tours": tours
@@ -151,7 +169,7 @@ const updateSpecificTour = (request, response) => {
       `${__dirname}/dev-data/data/tours-simple.json`,
       JSON.stringify(tours),
       () =>
-        response.status(200).json({
+        response.status(201).json({
           status: "success",
           message: `Tour ${specifiedId} has been updated`,
         })
@@ -198,6 +216,42 @@ const deleteSpecificTour = (request, response) => {
   }
 };
 
+// HANDLER FUNCTIONS - USERS
+const getAllUsers = (request, response) => {
+  response.status(500).json({
+    status: "error",
+    message: "route not yet defined",
+  });
+};
+
+const createNewUser = (request, response) => {
+  response.status(500).json({
+    status: "error",
+    message: "route not yet defined",
+  });
+};
+
+const getSpecificUser = (request, response) => {
+  response.status(500).json({
+    status: "error",
+    message: "route not yet defined",
+  });
+};
+
+const updateSpecificUser = (request, response) => {
+  response.status(500).json({
+    status: "error",
+    message: "route not yet defined",
+  });
+};
+
+const deleteSpecificUser = (request, response) => {
+  response.status(500).json({
+    status: "error",
+    message: "route not yet defined",
+  });
+};
+
 // HOMEPAGE
 // app.get("/", homepage);
 
@@ -216,18 +270,36 @@ const deleteSpecificTour = (request, response) => {
 // DELETE SPECIFIC TOUR DATA
 // app.delete("/api/v1/tours/:id", deleteSpecificTour);
 
-// MAKING USE OF "ROUTE" IN EXPRESS JS
-app.route("/").get(homepage);
-app.route("/api/v1/tours").get(getAllTours).post(createNewTour);
-app
-  .route("/api/v1/tours/:id")
+// ROUTER & ROUTES - TOURS
+// MAKING USE OF "ROUTER" & ROUTES IN EXPRESS JS.
+// CREATING AND MAKING USE OF A ROUTER ENSURES THAT INSTEAD OF ROUTING ALL REQUESTS DIRECTLY WITH "app", CREATE A ROUTER FOR EACH RESOURCE (e.g tour)
+// AND USE THAT ROUTER TO PROCESS REQUESTS THAT ARE MADE TO THAT RESOURCE..
+// app.route("/").get(homepage);
+
+const toursRouter = express.Router();
+app.use("/api/v1/tours", toursRouter);
+
+toursRouter.route("/").get(getAllTours).post(createNewTour);
+toursRouter
+  .route("/:id")
   .get(getSpecificTour)
   .patch(updateSpecificTour)
   .delete(deleteSpecificTour);
+
+// ROUTER & ROUTES - USERS
+const usersRouter = express.Router();
+app.use("/api/v1/users", usersRouter);
+
+usersRouter.route("/").get(getAllUsers).post(createNewUser);
+usersRouter
+  .route("/:id")
+  .get(getSpecificUser)
+  .patch(updateSpecificUser)
+  .delete(deleteSpecificUser);
 
 // returns a http server. The default host address is "127.0.0.1"
 app.listen(portNum, () => {
   console.log(`listening on port: ${portNum}`);
 });
 
-express.text;
+console.log(`__dirname: ${__dirname}`);
