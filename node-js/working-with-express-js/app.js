@@ -13,7 +13,6 @@
 //    iii. delete tour data at the right index and with the right id
 const fs = require("fs");
 const express = require("express");
-
 const morgan = require("morgan"); // http request logger for nodejs
 
 const toursRouter = require("./routes/toursRouter");
@@ -38,6 +37,10 @@ app.use((request, response, next) => {
   // console.log(Object.keys(response));
   next();
 });
+
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("combined"));
+}
 
 app.use("/api/v1/tours", toursRouter);
 app.use("/api/v1/users", usersRouter);
@@ -77,7 +80,5 @@ app.use("/api/v1/users", usersRouter);
 // returns a http server. The default host address is "127.0.0.1"
 
 // app.route("/").get(homepage);
-
-console.log(`__dirname: ${__dirname}`);
 
 module.exports = app;

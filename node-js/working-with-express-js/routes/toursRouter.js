@@ -37,7 +37,7 @@ toursRouter.param("id", checkID);
 
 // chaining middleware to specific CRUD events
 // making middleware CRUD operation specific. Here "Morgan" a HTTP Logger Middleware is chained to the GET method
-toursRouter.route("/").get(morgan("combined"), getAllTours).post(createNewTour);
+toursRouter.route("/").get(getAllTours).post(createNewTour);
 
 // console.log("toursRouter 3");
 
