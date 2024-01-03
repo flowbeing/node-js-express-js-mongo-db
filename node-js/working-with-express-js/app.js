@@ -11,8 +11,10 @@
 //    i. create new tour data at the right index and with the right id
 //    ii. update existing tour data at the right index and with the right id
 //    iii. delete tour data at the right index and with the right id
-const fs = require("fs");
+// const fs = require("fs");
+const mongoose = require("mongoose");
 const express = require("express");
+
 const morgan = require("morgan"); // http request logger for nodejs
 
 const toursRouter = require("./routes/toursRouter");
@@ -22,7 +24,7 @@ const usersRouter = require("./routes/usersRouter");
 // const portNum = 3000;
 
 // creates an express application
-let app = express();
+const app = express();
 
 // MIDDLEWARES
 // asks (express) app to make use of a middleware
@@ -38,9 +40,26 @@ app.use((request, response, next) => {
   next();
 });
 
+// running middle based on whether or not the current environment is a development or production environment
 if (process.env.NODE_ENV === "development") {
   app.use(morgan("combined"));
 }
+
+// connecting to MongoDB with mongoose
+const mongodbDriverConnectionString = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD,
+);
+
+mongoose
+  .connect(mongodbDriverConnectionString, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  })
+  .then((connection) => {
+    console.log(`DB Connection Successful: ${JSON.stringify(connection)}`);
+  });
 
 app.use("/api/v1/tours", toursRouter);
 app.use("/api/v1/users", usersRouter);
