@@ -1,40 +1,55 @@
-const fs = require("fs");
+const fs = require('fs');
+const ToursModel = require('../models/toursModels');
+const catchAsyncFunctionError = require('../utils/catchAsyncFunctionError');
 
 // reading json file & converting json string to an object (a map)
 let tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, "utf-8")
+  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf-8'),
 );
 
-const getAllTours = (request, response) => {
-  let toursLength = tours.length;
+const getAllTours = catchAsyncFunctionError(async (req, res, next) => {
+  const allToursData = ToursModel.find();
+  const allToursDataWithoutUnderscoreV = await allToursData.select('-__v');
+  console.log(`allToursData: ${allToursData}`);
+  res.status(200).json({
+    status: 'success',
+    data: {
+      allToursData: allToursDataWithoutUnderscoreV,
+    },
+  });
 
-  if (toursLength > 0) {
-    response.status(200).json({
-      status: "success",
-      requestTime: String(request.requestTime),
-      result: tours.length, // result specifies the result's length
-      data: {
-        tours, // similar to stating "tours": tours
-      },
-    });
-  } else if (toursLength == 0) {
-    response.status(404).json({
-      status: "fail",
-      message: "No Tours Data Found",
-    });
-  }
-};
+  // GETTING ALL TOURS FROM FILE
+  // tours = [];
+  // const toursLength = tours.length;
+
+  // if (toursLength > 0) {
+  //   res.status(200).json({
+  //     status: 'success',
+  //     requestTime: String(req.requestTime),
+  //     result: tours.length, // result specifies the result's length
+  //     data: {
+  //       tours, // similar to stating "tours": tours
+  //     },
+  //   });
+  // }
+  // } else if (toursLength === 0) {
+  //   res.status(404).json({
+  //     status: 'fail',
+  //     message: 'No Tours Data Found',
+  //   });
+  // }
+});
 
 const getSpecificTour = (request, response) => {
   // NOTE: Each request parameter (each key-value pair within request.params) has a "string" type
-  let specifiedId = Number(request.params.id);
+  const specifiedId = Number(request.params.id);
   // console.log(`specifiedId: ${specifiedId}, type: ${typeof specifiedId}`);
   // let toursLength = tours.length;
-  let tourWithSpecifiedId = tours.find((tour) => specifiedId == tour.id);
+  const tourWithSpecifiedId = tours.find((tour) => specifiedId === tour.id);
   console.log(`tourWithSpecifiedId: ${tourWithSpecifiedId}`);
 
   response.status(200).json({
-    status: "success",
+    status: 'success',
     result: 1,
     data: {
       tour: tourWithSpecifiedId,
@@ -42,67 +57,93 @@ const getSpecificTour = (request, response) => {
   });
 };
 
-const createNewTour = (request, response) => {
+const createNewTour = catchAsyncFunctionError(async (req, res, next) => {
+  const newTourData = req.body;
+  console.log(
+    `newTourData: ${
+      newTourData.name
+    }, ${typeof newTourData.price}, ${typeof newTourData.rating}`,
+  );
+
+  // ToursModel.create() doesn't seem to work well with "runValidators";
+  const options = {
+    runValidators: false,
+  };
+
+  const newTour = await ToursModel.create({
+    name: newTourData.name,
+    price: newTourData.price,
+    rating: newTourData.rating,
+  });
+
+  res.status(200).json({
+    status: 'success',
+    data: {
+      message: 'A new tour was created!',
+      tour: newTour,
+    },
+  });
+
+  // CREATE NEW TOUR AND SAVING TO FILE
   // console.log(request.body);
 
-  let newTourData = request.body;
-  let toursLength = tours.length;
+  // let newTourData = request.body;
+  // const toursLength = tours.length;
 
-  let lastTourId;
-  let newTourId;
+  // let lastTourId;
+  // let newTourId;
 
-  if (toursLength > 0) {
-    let lastTourIndex;
-    lastTourIndex = tours.length - 1;
+  // if (toursLength > 0) {
+  //   const lastTourIndex = tours.length - 1;
 
-    let lastTour = tours[lastTourIndex];
+  //   const lastTour = tours[lastTourIndex];
 
-    lastTourId = lastTour.id;
-    newTourId = lastTourId + 1;
-  } else if (toursLength == 0) {
-    newTourId = 0;
-  }
+  //   lastTourId = lastTour.id;
+  //   newTourId = lastTourId + 1;
+  // } else if (toursLength === 0) {
+  //   newTourId = 0;
+  // }
 
-  newTourData = Object.assign({ id: newTourId }, newTourData); // basically sets the "id" (key and value) for a new tour & displays it as the topmost key-value pair
-  // newTourData['id'] = newTourId;
+  // newTourData = Object.assign({ id: newTourId }, newTourData); // basically updates the value of "id" & places and displays it as the topmost key-value pair in the map
+  // // newTourData['id'] = newTourId;
 
-  console.log(`newTourData: ${newTourData}`);
+  // console.log(`newTourData: ${newTourData}`);
 
-  tours.push(newTourData);
+  // tours.push(newTourData);
 
-  let toursJSON = JSON.stringify(tours);
+  // const toursJSON = JSON.stringify(tours);
 
-  // fs.writeFile to write data to file avoid blocking the event loop
-  fs.writeFile(
-    `${__dirname}/dev-data/data/tours-simple.json`,
-    toursJSON,
-    "utf-8",
-    () =>
-      response.status(200).json({
-        status: "success",
-        message: `Done! New Tour (${newTourId}) has been created.`,
-      })
-  );
-};
+  // // fs.writeFile to write data to file avoid blocking the event loop
+  // fs.writeFile(
+  //   `${__dirname}/dev-data/data/tours-simple.json`,
+  //   toursJSON,
+  //   'utf-8',
+  //   () =>
+  //     response.status(200).json({
+  //       status: 'success',
+  //       message: `Done! New Tour (${newTourId}) has been created.`,
+  //     }),
+  // );
+});
 
 const updateSpecificTour = (request, response) => {
   console.log(`response.body: ${request.body.name}`);
 
-  let specifiedId = Number(request.params.id);
-  let tourDataUpdate = request.body;
-  let tourDataToUpdate = tours.find((tour) => tour.id == specifiedId);
+  const specifiedId = Number(request.params.id);
+  const tourDataUpdate = request.body;
+  const tourDataToUpdate = tours.find((tour) => tour.id === specifiedId);
 
   // let updatedTourData = Object.assign(tourDataUpdate, tourDataToUpdate);
 
   // index of data to be updated with list of tours
-  let indexOfTourDataToUpdate = tours.indexOf(tourDataToUpdate);
+  const indexOfTourDataToUpdate = tours.indexOf(tourDataToUpdate);
 
   // updating the specified tour data
   Object.keys(tourDataUpdate).forEach(
-    (key) => (tourDataToUpdate[key] = tourDataUpdate[key])
+    (key) => (tourDataToUpdate[key] = tourDataUpdate[key]),
   );
 
-  let updatedTourData = tourDataToUpdate;
+  const updatedTourData = tourDataToUpdate;
 
   // console.log(`updatedTourData: ${updatedTourData.name}`);
   tours[indexOfTourDataToUpdate] = updatedTourData;
@@ -111,22 +152,22 @@ const updateSpecificTour = (request, response) => {
     JSON.stringify(tours),
     () =>
       response.status(201).json({
-        status: "success",
+        status: 'success',
         message: `Tour ${specifiedId} has been updated`,
-      })
+      }),
   );
 };
 
 const deleteSpecificTour = (request, response) => {
-  let specifiedId = Number(request.params.id);
-  let toursLength = tours.length;
+  const specifiedId = Number(request.params.id);
+  const toursLength = tours.length;
   console.log(`toursLength pre-deletion: ${toursLength}`);
 
   // tour data that has it's id set to the specified id
-  let specifiedData = tours.find((tour) => tour.id == specifiedId);
+  const specifiedData = tours.find((tour) => tour.id === specifiedId);
 
   console.log(`specifiedData: ${specifiedData.id}`);
-  let indexOfSpecifiedData = tours.indexOf(specifiedData);
+  const indexOfSpecifiedData = tours.indexOf(specifiedData);
   console.log(`indexOfSpecifiedData: ${indexOfSpecifiedData}`);
 
   tours.splice(indexOfSpecifiedData, 1);
@@ -138,25 +179,25 @@ const deleteSpecificTour = (request, response) => {
     JSON.stringify(tours),
     () =>
       response.status(204).json({
-        status: "success",
+        status: 'success',
         data: null,
-      })
+      }),
   );
 };
 
 // check body function -> used in router.param("id", checkIDController)
 const checkID = (request, response, next, val) => {
-  const numberOfTours = tours.length;
+  // const numberOfTours = tours.length;
   const id = val;
 
-  const tourWithSpecifiedId = tours.find((tour) => tour.id == id);
+  const tourWithSpecifiedId = tours.find((tour) => tour.id === id);
 
   if (!tourWithSpecifiedId) {
     // console.log("responded");
 
     return response.status(404).json({
-      status: "fail",
-      message: "Invalid ID",
+      status: 'fail',
+      message: 'Invalid ID',
     });
   }
 

@@ -12,19 +12,24 @@
 //    ii. update existing tour data at the right index and with the right id
 //    iii. delete tour data at the right index and with the right id
 // const fs = require("fs");
-const mongoose = require("mongoose");
-const express = require("express");
+const mongoose = require('mongoose');
+const express = require('express');
+const morgan = require('morgan'); // http request logger for nodejs
+const { AppError } = require('./utils/errors');
 
-const morgan = require("morgan"); // http request logger for nodejs
-
-const toursRouter = require("./routes/toursRouter");
-const usersRouter = require("./routes/usersRouter");
+const toursRouter = require('./routes/toursRouter');
+const usersRouter = require('./routes/usersRouter');
 
 // port number
 // const portNum = 3000;
 
 // creates an express application
 const app = express();
+
+// running middle based on whether or not the current environment is a development or production environment
+if (process.env.NODE_ENV === 'development') {
+  app.use(morgan('combined'));
+}
 
 // MIDDLEWARES
 // asks (express) app to make use of a middleware
@@ -33,21 +38,56 @@ app.use(express.json()); // express.json returns a middleware that parses the re
 // app.use(morgan("combined")); // logs http requests to the console
 
 app.use((request, response, next) => {
-  console.log("This is a middleware");
+  console.log('This is a middleware');
   request.requestTime = new Date().toISOString();
   // console.log(next);
   // console.log(Object.keys(response));
   next();
 });
 
-// running middle based on whether or not the current environment is a development or production environment
-if (process.env.NODE_ENV === "development") {
-  app.use(morgan("combined"));
-}
+// ADDING ROUTERS TO APP
+app.use('/api/v1/tours', toursRouter);
+app.use('/api/v1/users', usersRouter);
 
-// connecting to MongoDB with mongoose
+// HANDLING UNHANDLED ROUTES -> should be placed after all implemented routes
+// status codes: 200 - 300 ok, 400 - 500 error
+app.all('*', (req, res, next) => {
+  // res.status(404).json({
+  //   status: 'fail',
+  //   data: {
+  //     message: 'Page not found!',
+  //     url: req.originalUrl,
+  //   },
+  // });
+
+  console.log(`in app.all`);
+
+  let error = new Error('Page not found!');
+  error.statusCode = 404;
+  app.status = 'error!';
+
+  error = new AppError(error);
+
+  next(error);
+});
+
+// ERROR MIDDLEWARE
+app.use((err, req, res, val) => {
+  const appError = new AppError(err);
+
+  console.log();
+  console.log(`Error Middleware: ${appError.statusCode}`);
+  console.log();
+
+  res.status(appError.statusCode).json({
+    status: appError.status,
+    message: appError.message,
+  });
+});
+
+// CONNECTING TO MONGODB WITH MONGOOSE
 const mongodbDriverConnectionString = process.env.DATABASE.replace(
-  "<PASSWORD>",
+  '<PASSWORD>',
   process.env.DATABASE_PASSWORD,
 );
 
@@ -57,13 +97,13 @@ mongoose
     useCreateIndex: true,
     useFindAndModify: false,
   })
-  .then((connection) => {
-    console.log(`DB Connection Successful: ${JSON.stringify(connection)}`);
+  .then((result) => {
+    console.log(`Connection successful: ${result}`);
+  })
+  .catch((error) => {
+    console.log();
+    console.log('ERROR: MONGOOSE CONNECTION ERROR!');
   });
-
-app.use("/api/v1/tours", toursRouter);
-app.use("/api/v1/users", usersRouter);
-
 // console.log(typeof(tours));
 // console.log(typeof ("a" + 1));
 // console.log("a" * 1);
@@ -82,7 +122,8 @@ app.use("/api/v1/users", usersRouter);
 // app.get("/", homepage);
 
 // GET ALL TOURS DATA
-// app.get("/api/v1/tours", getAllTours);
+// app.get('/api/v1/tours', getAllTours);
+// app.get('/api/v1/tours', (req, res, next) => {}); // CRUD operation function handlers can take 'req', 'res', 'next'
 
 // GET SPECIFIC TOUR'S DATA
 // app.get("/api/v1/tours/:id", getSpecificTour);
