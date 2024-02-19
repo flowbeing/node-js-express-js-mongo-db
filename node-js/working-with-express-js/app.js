@@ -12,13 +12,23 @@
 //    ii. update existing tour data at the right index and with the right id
 //    iii. delete tour data at the right index and with the right id
 // const fs = require("fs");
-const mongoose = require('mongoose');
-const express = require('express');
-const morgan = require('morgan'); // http request logger for nodejs
-const { AppError } = require('./utils/errors');
+const mongoose = require("mongoose");
+const express = require("express");
+const morgan = require("morgan"); // http request logger for nodejs
 
-const toursRouter = require('./routes/toursRouter');
-const usersRouter = require('./routes/usersRouter');
+const bcrypt = require("bcrypt"); // for generating password hash
+const jsonwebtoken = require("jsonwebtoken"); // for generating JWT tokens
+const crypto = require("crypto"); // for generating password reset tokens
+
+const nodemailer = require("nodemailer");
+
+// const util = require("util");
+
+const { AppError } = require("./utils/errors");
+
+const toursRouter = require("./routes/toursRouter");
+const usersRouter = require("./routes/usersRouter");
+// const { hostname } = require("os");
 
 // port number
 // const portNum = 3000;
@@ -26,9 +36,33 @@ const usersRouter = require('./routes/usersRouter');
 // creates an express application
 const app = express();
 
+// CONNECTING TO MONGODB WITH MONGOOSE
+const mongodbDriverConnectionString = process.env.DATABASE.replace(
+  "<PASSWORD>",
+  process.env.DATABASE_PASSWORD,
+);
+
+// MONGODB CONNECTION
+mongoose
+  .connect(mongodbDriverConnectionString, {
+    useNewUrlParser: true,
+    useCreateIndex: true,
+    useFindAndModify: false,
+  })
+  .then((result) => {
+    console.log();
+    console.log("MONGODB CONNECTION SUCCESSFUL!");
+    console.log();
+  })
+  .catch((error) => {
+    console.log();
+    console.log("MONGODB CONNECTION ERROR!");
+    console.log();
+  });
+
 // running middle based on whether or not the current environment is a development or production environment
-if (process.env.NODE_ENV === 'development') {
-  app.use(morgan('combined'));
+if (process.env.NODE_ENV === "development") {
+  app.use(morgan("combined"));
 }
 
 // MIDDLEWARES
@@ -38,7 +72,7 @@ app.use(express.json()); // express.json returns a middleware that parses the re
 // app.use(morgan("combined")); // logs http requests to the console
 
 app.use((request, response, next) => {
-  console.log('This is a middleware');
+  console.log("This is a middleware");
   request.requestTime = new Date().toISOString();
   // console.log(next);
   // console.log(Object.keys(response));
@@ -46,12 +80,12 @@ app.use((request, response, next) => {
 });
 
 // ADDING ROUTERS TO APP
-app.use('/api/v1/tours', toursRouter);
-app.use('/api/v1/users', usersRouter);
+app.use("/api/v1/tours", toursRouter);
+app.use("/api/v1/users", usersRouter);
 
 // HANDLING UNHANDLED ROUTES -> should be placed after all implemented routes
 // status codes: 200 - 300 ok, 400 - 500 error
-app.all('*', (req, res, next) => {
+app.all("*", (req, res, next) => {
   // res.status(404).json({
   //   status: 'fail',
   //   data: {
@@ -62,9 +96,9 @@ app.all('*', (req, res, next) => {
 
   console.log(`in app.all`);
 
-  let error = new Error('Page not found!');
+  let error = new Error("Page not found!");
   error.statusCode = 404;
-  app.status = 'error!';
+  app.status = "error!";
 
   error = new AppError(error);
 
@@ -80,30 +114,13 @@ app.use((err, req, res, val) => {
   console.log();
 
   res.status(appError.statusCode).json({
-    status: appError.status,
+    status: appError.name,
     message: appError.message,
   });
 });
 
-// CONNECTING TO MONGODB WITH MONGOOSE
-const mongodbDriverConnectionString = process.env.DATABASE.replace(
-  '<PASSWORD>',
-  process.env.DATABASE_PASSWORD,
-);
+// process.on('uncaughtException')
 
-mongoose
-  .connect(mongodbDriverConnectionString, {
-    useNewUrlParser: true,
-    useCreateIndex: true,
-    useFindAndModify: false,
-  })
-  .then((result) => {
-    console.log(`Connection successful: ${result}`);
-  })
-  .catch((error) => {
-    console.log();
-    console.log('ERROR: MONGOOSE CONNECTION ERROR!');
-  });
 // console.log(typeof(tours));
 // console.log(typeof ("a" + 1));
 // console.log("a" * 1);
@@ -140,5 +157,139 @@ mongoose
 // returns a http server. The default host address is "127.0.0.1"
 
 // app.route("/").get(homepage);
+
+// const m = {
+//   one: 1,
+//   two: 2,
+//   three: 3,
+// };
+
+// const mm = {
+//   0: "one",
+//   1: "two",
+//   2: "three",
+// };
+
+// const entries = Object.entries(m);
+// const entriesmm = Object.entries(mm);
+
+// console.log();
+// console.log(entriesmm);
+// console.log(Object.fromEntries(entriesmm));
+
+// console.log();
+
+// async function aC() {
+//   const result = await bcrypt.hash("password", 12);
+
+//   return result;
+// }
+
+// const resultTwo = await util.promisify(bcrypt.hash("password", 12));
+
+// bcrypt.hash("password", 12, (err, passwordHash) => {
+//   async function comparePassword() {
+//     const result = await bcrypt.compare("password", passwordHash);
+//     console.log(`passwordHash: ${passwordHash}`);
+//     console.log(`isPasswordSame: ${result}`);
+//   }
+//   comparePassword();
+// });
+
+// bcrypt.compare("password", passwordHash);
+
+// JWT - Json Web Token
+const tokenOne = jsonwebtoken.sign(
+  { _id: "aaewfadsfasdfasfd" },
+  "tokenKey;it-should-be-32-strings-long;",
+  { algorithm: "HS512", expiresIn: "90d" },
+); //  (err, jwt) => console.log(`jwt: ${jwt}`
+
+const tokenEditedInProgress = tokenOne.split("");
+tokenEditedInProgress[tokenEditedInProgress.length - 1] = "Q";
+// const tokenEdited = tokenEditedInProgress.join("");
+
+console.log(`jsonwebtoken      : ${tokenOne}`);
+// console.log(`jsonwebtokenEdited: ${tokenEdited}`);
+
+// const verifyOne = jsonwebtoken.verify(
+//   tokenOne,
+//   "tokenKey;it-should-be-32-strings-long;",
+//   { algorithm: "HS512", expiresIn: "90d" },
+// );
+
+// const verifyEdited = jsonwebtoken.verify(
+//   tokenEdited,
+//   "tokenKey;it-should-be-32-strings-long;",
+//   { algorithm: "HS512", expiresIn: "90d" },
+// );
+
+// console.log(`verifyOne   : ${Object.entries(verifyOne)}`);
+// console.log(`verifyEdited: ${Object.entries(verifyEdited)}`);
+
+// setTimeout(() => {
+//   const jwt2 = jsonwebtoken.sign(
+//     { _id: "aaewfadsfasdfasfd" },
+//     "q23497faosijfdasdjf;",
+//   );
+
+//   console.log(`jwt1: ${jwt}`);
+//   console.log(`jwt2: ${jwt2}`);
+//   console.log(`jwt1==jwt2: ${jwt === jwt2}`);
+// }, 460);
+
+// const l = [11, 2, 3, 4, 5];
+// const s = ["one", "two", "three", "four"];
+// const result = l.reduce((total, currentNum) => {
+//   console.log(`total: ${total}`);
+//   console.log(`currentNum: ${currentNum}`);
+//   return total + currentNum;
+// }, 0);
+// console.log(`result: ${result}`);
+
+const key = crypto.randomBytes(12).toString("hex");
+
+const encryptedKey = crypto.createHash("SHA256").update(key).digest("hex");
+// console.log(key);
+console.log(encryptedKey);
+
+console.log();
+console.log("---------------------------------------------------------");
+console.log();
+
+const sendEmail = async (mailOptions) => {
+  // CREATE A TRANSPORTER
+  const transporter = nodemailer.createTransport({
+    host: process.env.NODEMAILER_HOST,
+    port: process.env.NODEMAILER_PORT,
+    auth: {
+      user: process.env.NODEMAILER_USERNAME,
+      pass: process.env.NODEMAILER_PASSWORD,
+    },
+  });
+
+  // SETTING THE TRANPORTER'S EMAIL PARAMETERS OR OPTIONS
+  // const mailOptions = {
+  //   from: options.from, // "Daniel Oye <danieloye@email.com>",
+  //   to: options.to, // "aPerson Stial <apersonstial@email.com>"
+  //   subject: options.subject,
+  //   text: options.text,
+  //   // html:  // specifies the html that should be displayed
+  // };
+
+  return await transporter.sendMail({
+    ...mailOptions,
+    from: "Dan Oye <danloye@example.com>",
+  });
+};
+
+sendEmail({
+  from: "Dan O <danloye@example.com>",
+  to: "aPerson Stial <apersonstial@example.com>",
+  subject: "An Initial Nodemail Email",
+  text: "This is an initial nodemail email to Dan Oye",
+})
+  .then((result) => console.log(`Email has been sent: ${result}`))
+  .catch((error) => console.log(error));
 
 module.exports = app;

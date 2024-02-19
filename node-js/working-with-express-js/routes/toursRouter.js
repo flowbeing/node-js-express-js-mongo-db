@@ -3,8 +3,8 @@
 // CREATING AND MAKING USE OF A ROUTER ENSURES THAT INSTEAD OF ROUTING ALL REQUESTS DIRECTLY WITH "app", CREATE A ROUTER FOR EACH RESOURCE (e.g tour)
 // AND USE THAT ROUTER TO PROCESS REQUESTS THAT ARE MADE TO THAT RESOURCE..
 
-const express = require('express');
-const morgan = require('morgan');
+const express = require("express");
+const morgan = require("morgan");
 const {
   getAllTours,
   getSpecificTour,
@@ -12,7 +12,7 @@ const {
   updateSpecificTour,
   deleteSpecificTour,
   checkID,
-} = require('../controllers/toursControllers');
+} = require("../controllers/toursControllers");
 
 // console.log(`getAllTours: ${getAllTours}, type: ${typeof getAllTours}`);
 
@@ -29,7 +29,7 @@ const toursRouter = express.Router();
 //   next();
 // });
 
-toursRouter.param('id', checkID);
+// toursRouter.param("id", checkID);
 
 // toursRouter.use(morgan("combined"));
 
@@ -37,12 +37,12 @@ toursRouter.param('id', checkID);
 
 // chaining middleware to specific CRUD events
 // making middleware CRUD operation specific. Here "Morgan" a HTTP Logger Middleware is chained to the GET method
-toursRouter.route('/').get(getAllTours).post(createNewTour);
+toursRouter.route("/").get(getAllTours).post(createNewTour);
 
 // console.log("toursRouter 3");
 
 toursRouter
-  .route('/:id')
+  .route("/:id")
   .get(getSpecificTour)
   .patch(updateSpecificTour)
   .delete(deleteSpecificTour);

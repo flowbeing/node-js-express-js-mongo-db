@@ -1,18 +1,21 @@
-const fs = require('fs');
-const ToursModel = require('../models/toursModels');
-const catchAsyncFunctionError = require('../utils/catchAsyncFunctionError');
+const fs = require("fs");
+const ToursModel = require("../models/toursModels");
+const catchAsyncFunctionError = require("../utils/catchAsyncFunctionError");
+const { model } = require("mongoose");
 
 // reading json file & converting json string to an object (a map)
 let tours = JSON.parse(
-  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, 'utf-8'),
+  fs.readFileSync(`${__dirname}/../dev-data/data/tours-simple.json`, "utf-8"),
 );
 
 const getAllTours = catchAsyncFunctionError(async (req, res, next) => {
+  console.log(`req.host: ${req.host}`);
+
   const allToursData = ToursModel.find();
-  const allToursDataWithoutUnderscoreV = await allToursData.select('-__v');
+  const allToursDataWithoutUnderscoreV = await allToursData.select("-__v");
   console.log(`allToursData: ${allToursData}`);
   res.status(200).json({
-    status: 'success',
+    status: "success",
     data: {
       allToursData: allToursDataWithoutUnderscoreV,
     },
@@ -40,25 +43,44 @@ const getAllTours = catchAsyncFunctionError(async (req, res, next) => {
   // }
 });
 
-const getSpecificTour = (request, response) => {
-  // NOTE: Each request parameter (each key-value pair within request.params) has a "string" type
-  const specifiedId = Number(request.params.id);
-  // console.log(`specifiedId: ${specifiedId}, type: ${typeof specifiedId}`);
-  // let toursLength = tours.length;
-  const tourWithSpecifiedId = tours.find((tour) => specifiedId === tour.id);
-  console.log(`tourWithSpecifiedId: ${tourWithSpecifiedId}`);
+const getSpecificTour = catchAsyncFunctionError(async (req, res, next) => {
+  const { id } = req.params; // string
+  // console.log(`id: ${id}`);
+  const tour = await ToursModel.findById({ _id: id });
+  console.log(`typeof(tour): ${typeof tour}`);
+  console.log(`tour: ${Object.entries(tour)}`);
 
-  response.status(200).json({
-    status: 'success',
-    result: 1,
+  // console.log(tour);
+  // console.log(await tour.save());
+
+  res.status(200).json({
+    status: "success",
     data: {
-      tour: tourWithSpecifiedId,
+      tour: JSON.stringify(tour),
     },
   });
-};
 
-const createNewTour = catchAsyncFunctionError(async (req, res, next) => {
-  const newTourData = req.body;
+  // GETTING SPECIFIC TOUR FROM FILE
+  // // NOTE: Each request parameter (each key-value pair within request.params) has a "string" type
+  // const specifiedId = Number(request.params.id);
+  // // console.log(`specifiedId: ${specifiedId}, type: ${typeof specifiedId}`);
+  // // let toursLength = tours.length;
+  // const tourWithSpecifiedId = tours.find((tour) => specifiedId === tour.id);
+  // console.log(`tourWithSpecifiedId: ${tourWithSpecifiedId}`);
+
+  // response.status(200).json({
+  //   status: "success",
+  //   result: 1,
+  //   data: {
+  //     tour: tourWithSpecifiedId,
+  //   },
+  // });
+});
+
+const createNewTour = catchAsyncFunctionError(async (...data) => {
+  console.log(`data: ${Object.keys(data[1])}`);
+  const newTourData = data.req.body;
+  // const newTourData = req.body;
   console.log(
     `newTourData: ${
       newTourData.name
@@ -76,10 +98,10 @@ const createNewTour = catchAsyncFunctionError(async (req, res, next) => {
     rating: newTourData.rating,
   });
 
-  res.status(200).json({
-    status: 'success',
+  data.res.status(200).json({
+    status: "success",
     data: {
-      message: 'A new tour was created!',
+      message: "A new tour was created!",
       tour: newTour,
     },
   });
@@ -152,7 +174,7 @@ const updateSpecificTour = (request, response) => {
     JSON.stringify(tours),
     () =>
       response.status(201).json({
-        status: 'success',
+        status: "success",
         message: `Tour ${specifiedId} has been updated`,
       }),
   );
@@ -179,32 +201,32 @@ const deleteSpecificTour = (request, response) => {
     JSON.stringify(tours),
     () =>
       response.status(204).json({
-        status: 'success',
+        status: "success",
         data: null,
       }),
   );
 };
 
 // check body function -> used in router.param("id", checkIDController)
-const checkID = (request, response, next, val) => {
-  // const numberOfTours = tours.length;
-  const id = val;
+// const checkID = (request, response, next, val) => {
+//   // const numberOfTours = tours.length;
+//   const id = val;
 
-  const tourWithSpecifiedId = tours.find((tour) => tour.id === id);
+//   const tourWithSpecifiedId = tours.find((tour) => tour.id === id);
 
-  if (!tourWithSpecifiedId) {
-    // console.log("responded");
+//   if (!tourWithSpecifiedId) {
+//     // console.log("responded");
 
-    return response.status(404).json({
-      status: 'fail',
-      message: 'Invalid ID',
-    });
-  }
+//     return response.status(404).json({
+//       status: "fail",
+//       message: "Invalid ID",
+//     });
+//   }
 
-  //   console.log("post responded");
+//   //   console.log("post responded");
 
-  next();
-};
+//   next();
+// };
 
 // exports.getAllTours = getAllTours;
 // exports.getSpecificTour = getSpecificTour;
@@ -218,5 +240,5 @@ module.exports = {
   createNewTour,
   updateSpecificTour,
   deleteSpecificTour,
-  checkID,
+  // checkID,
 };

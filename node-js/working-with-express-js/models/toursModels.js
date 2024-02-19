@@ -1,10 +1,12 @@
-const mongoose = require('mongoose');
+const mongoose = require("mongoose");
+const validator = require("validator");
 
 const toursSchema = mongoose.Schema({
   name: {
     type: String,
-    required: [true, 'Please specify a name'],
+    required: [true, "Please specify a name"],
     unique: true,
+    validate: [validator.isAlpha, "Please provide a name with aphabets"],
   },
   rating: {
     type: Number,
@@ -12,7 +14,7 @@ const toursSchema = mongoose.Schema({
   },
   price: {
     type: Number,
-    required: [true, 'Please enter a price'],
+    required: [true, "Please enter a price"],
   },
 });
 
@@ -24,7 +26,7 @@ const toursSchema = mongoose.Schema({
 // });
 
 // make a model out of the specified schema
-const toursModel = mongoose.model('Tours', toursSchema);
+const toursModel = mongoose.model("Tours", toursSchema);
 
 module.exports = toursModel;
 
