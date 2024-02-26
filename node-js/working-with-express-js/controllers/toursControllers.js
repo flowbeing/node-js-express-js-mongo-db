@@ -9,8 +9,6 @@ let tours = JSON.parse(
 );
 
 const getAllTours = catchAsyncFunctionError(async (req, res, next) => {
-  console.log(`req.host: ${req.host}`);
-
   const allToursData = ToursModel.find();
   const allToursDataWithoutUnderscoreV = await allToursData.select("-__v");
   console.log(`allToursData: ${allToursData}`);
@@ -47,16 +45,12 @@ const getSpecificTour = catchAsyncFunctionError(async (req, res, next) => {
   const { id } = req.params; // string
   // console.log(`id: ${id}`);
   const tour = await ToursModel.findById({ _id: id });
-  console.log(`typeof(tour): ${typeof tour}`);
-  console.log(`tour: ${Object.entries(tour)}`);
-
-  // console.log(tour);
-  // console.log(await tour.save());
+  // console.log(`typeof(tour): ${typeof tour}`);
 
   res.status(200).json({
     status: "success",
     data: {
-      tour: JSON.stringify(tour),
+      tour,
     },
   });
 

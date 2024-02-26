@@ -15,26 +15,29 @@
 const mongoose = require("mongoose");
 const express = require("express");
 const morgan = require("morgan"); // http request logger for nodejs
-
-const bcrypt = require("bcrypt"); // for generating password hash
-const jsonwebtoken = require("jsonwebtoken"); // for generating JWT tokens
-const crypto = require("crypto"); // for generating password reset tokens
-
-const nodemailer = require("nodemailer");
-
-// const util = require("util");
-
+const bcrypt = require("bcrypt");
+const jsonwebtoken = require("jsonwebtoken");
+const util = require("util");
+const crypto = require("crypto");
 const { AppError } = require("./utils/errors");
-
+const rateLimiter = require("express-rate-limit");
 const toursRouter = require("./routes/toursRouter");
 const usersRouter = require("./routes/usersRouter");
-// const { hostname } = require("os");
 
 // port number
 // const portNum = 3000;
 
 // creates an express application
 const app = express();
+
+const limitIPAccessRate = rateLimiter({
+  max: 100,
+  windowMs: 1000 * 60 * 60,
+});
+
+app.use("/api", limitIPAccessRate);
+
+console.log(limitIPAccessRate);
 
 // CONNECTING TO MONGODB WITH MONGOOSE
 const mongodbDriverConnectionString = process.env.DATABASE.replace(
@@ -252,44 +255,5 @@ const key = crypto.randomBytes(12).toString("hex");
 const encryptedKey = crypto.createHash("SHA256").update(key).digest("hex");
 // console.log(key);
 console.log(encryptedKey);
-
-console.log();
-console.log("---------------------------------------------------------");
-console.log();
-
-const sendEmail = async (mailOptions) => {
-  // CREATE A TRANSPORTER
-  const transporter = nodemailer.createTransport({
-    host: process.env.NODEMAILER_HOST,
-    port: process.env.NODEMAILER_PORT,
-    auth: {
-      user: process.env.NODEMAILER_USERNAME,
-      pass: process.env.NODEMAILER_PASSWORD,
-    },
-  });
-
-  // SETTING THE TRANPORTER'S EMAIL PARAMETERS OR OPTIONS
-  // const mailOptions = {
-  //   from: options.from, // "Daniel Oye <danieloye@email.com>",
-  //   to: options.to, // "aPerson Stial <apersonstial@email.com>"
-  //   subject: options.subject,
-  //   text: options.text,
-  //   // html:  // specifies the html that should be displayed
-  // };
-
-  return await transporter.sendMail({
-    ...mailOptions,
-    from: "Dan Oye <danloye@example.com>",
-  });
-};
-
-sendEmail({
-  from: "Dan O <danloye@example.com>",
-  to: "aPerson Stial <apersonstial@example.com>",
-  subject: "An Initial Nodemail Email",
-  text: "This is an initial nodemail email to Dan Oye",
-})
-  .then((result) => console.log(`Email has been sent: ${result}`))
-  .catch((error) => console.log(error));
 
 module.exports = app;
