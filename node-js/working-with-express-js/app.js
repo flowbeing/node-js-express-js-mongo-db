@@ -19,6 +19,7 @@ const bcrypt = require("bcrypt");
 const jsonwebtoken = require("jsonwebtoken");
 const util = require("util");
 const crypto = require("crypto");
+const hpp = require("hpp");
 const { AppError } = require("./utils/errors");
 const rateLimiter = require("express-rate-limit");
 const toursRouter = require("./routes/toursRouter");
@@ -36,6 +37,7 @@ const limitIPAccessRate = rateLimiter({
 });
 
 app.use("/api", limitIPAccessRate);
+app.use(hpp());
 
 console.log(limitIPAccessRate);
 
