@@ -18,7 +18,7 @@ const {
 
 // console.log("toursRouter 1");
 
-const toursRouter = express.Router();
+const toursRouter = express.Router({ mergeParams: true });
 
 //
 // toursRouter.param("id", (request, response, next, val) => {

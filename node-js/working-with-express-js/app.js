@@ -252,10 +252,13 @@ console.log(`jsonwebtoken      : ${tokenOne}`);
 // }, 0);
 // console.log(`result: ${result}`);
 
-const key = crypto.randomBytes(12).toString("hex");
+// const key = crypto.randomBytes(12).toString("hex");
 
-const encryptedKey = crypto.createHash("SHA256").update(key).digest("hex");
-// console.log(key);
-console.log(encryptedKey);
+// const encryptedKey = crypto.createHash("SHA256").update(key).digest("hex");
+// // console.log(key);
+// console.log(encryptedKey);
+
+console.log(`Date: ${Date.now()}`);
+console.log(`Date: ${Date.now}`);
 
 module.exports = app;
