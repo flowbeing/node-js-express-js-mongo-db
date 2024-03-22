@@ -24,6 +24,7 @@ const { AppError } = require("./utils/errors");
 const rateLimiter = require("express-rate-limit");
 const toursRouter = require("./routes/toursRouter");
 const usersRouter = require("./routes/usersRouter");
+const reviewsRouter = require("./routes/reviewsRouter");
 
 // port number
 // const portNum = 3000;
@@ -41,11 +42,14 @@ app.use(hpp());
 
 console.log(limitIPAccessRate);
 
-// CONNECTING TO MONGODB WITH MONGOOSE
-const mongodbDriverConnectionString = process.env.DATABASE.replace(
+// CONNECTING TO MONGODB WITH MONGOOSE:
+process.env.DATABASE = process.env.DATABASE.replace(
   "<PASSWORD>",
   process.env.DATABASE_PASSWORD,
 );
+const mongodbDriverConnectionString = process.env.DATABASE;
+
+// const mongodbDriverConnectionString = process.env.DATABASE_LOCAL;
 
 // MONGODB CONNECTION
 mongoose
@@ -87,6 +91,7 @@ app.use((request, response, next) => {
 // ADDING ROUTERS TO APP
 app.use("/api/v1/tours", toursRouter);
 app.use("/api/v1/users", usersRouter);
+app.use("/api/v1/reviews", reviewsRouter);
 
 // HANDLING UNHANDLED ROUTES -> should be placed after all implemented routes
 // status codes: 200 - 300 ok, 400 - 500 error
@@ -258,7 +263,12 @@ console.log(`jsonwebtoken      : ${tokenOne}`);
 // // console.log(key);
 // console.log(encryptedKey);
 
-console.log(`Date: ${Date.now()}`);
-console.log(`Date: ${Date.now}`);
+// console.log(`Date: ${Date.now()}`);
+
+// Object.keys(arguments).map((key) => console.log(`${key}: ${arguments[key]}`));
+
+console.log();
+// console.log(process.argv);
+// console.log(app.settings.env);
 
 module.exports = app;

@@ -8,10 +8,10 @@ const toursSchema = mongoose.Schema({
     unique: true,
     validate: [validator.isAlpha, "Please provide a name with aphabets"],
   },
-  rating: {
-    type: Number,
-    default: 4.5,
-  },
+  // rating: {
+  //   type: Number,
+  //   default: 4.5,
+  // },
   price: {
     type: Number,
     required: [true, "Please enter a price"],
@@ -26,7 +26,7 @@ const toursSchema = mongoose.Schema({
 // });
 
 // make a model out of the specified schema
-const toursModel = mongoose.model("Tours", toursSchema);
+const toursModel = mongoose.model("tours", toursSchema);
 
 module.exports = toursModel;
 

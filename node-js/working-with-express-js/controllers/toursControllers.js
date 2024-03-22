@@ -1,5 +1,5 @@
 const fs = require("fs");
-const ToursModel = require("../models/toursModels");
+const ToursModel = require("../models/toursModel");
 const catchAsyncFunctionError = require("../utils/catchAsyncFunctionError");
 const { model } = require("mongoose");
 
@@ -11,10 +11,12 @@ let tours = JSON.parse(
 const getAllTours = catchAsyncFunctionError(async (req, res, next) => {
   const allToursData = ToursModel.find();
   const allToursDataWithoutUnderscoreV = await allToursData.select("-__v");
+  const allToursCount = await allToursData.countDocuments();
   console.log(`allToursData: ${allToursData}`);
   res.status(200).json({
     status: "success",
     data: {
+      result: allToursCount,
       allToursData: allToursDataWithoutUnderscoreV,
     },
   });
