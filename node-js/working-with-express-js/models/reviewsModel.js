@@ -23,6 +23,8 @@ const reviewSchema = mongoose.Schema({
   },
 });
 
+reviewSchema.index({ userId: 1, tourId: 1 }, { unique: true });
+
 reviewSchema.pre("save", function (next) {
   Object.keys(this).forEach((key) => console.log(`${key}: ${this[key]}`));
   next();
